@@ -1,16 +1,20 @@
 package com.infisical.secretops.http;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.util.Objects;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class APIResponse {
     private Status status;
     private int responseCode;
     private String responseBody;
+
+    public boolean isSuccess() {
+        return Objects.nonNull(status) && Status.SUCCESS.equals(status);
+    }
 }
