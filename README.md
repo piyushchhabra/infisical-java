@@ -27,7 +27,7 @@
 The recommended way to use the Infisical SDK for Java in your project is to consume it from Maven. Import as follows:
 ```xml
 <dependency>
-    <groupId>com.infisical.secretops</groupId>
+    <groupId>io.github.piyushchhabra</groupId>
     <artifactId>infisical-client</artifactId>
     <version>1.0.0</version>
 </dependency>
