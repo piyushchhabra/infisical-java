@@ -14,15 +14,18 @@ public class SecretDtoToSecretMapper implements BiFunction<SecretDto, WorkspaceC
     @Override
     @SneakyThrows
     public Secret apply(SecretDto secretDto, WorkspaceConfig config) {
-        String secretName = CryptUtil.decrypt128BitHexKey(DecryptInput.builder()
-                .key(config.getWorkspaceKey())
-                .iv(secretDto.getSecretKeyIV())
-                .tag(secretDto.getSecretKeyTag())
-                .cipherText(secretDto.getSecretKeyCiphertext())
-                .build());
+        String secretName = secretDto.getDecryptedSecretName();
+        if (secretName == null) {
+            secretName = CryptUtil.decrypt128BitHexKey(DecryptInput.builder()
+                    .key(config.getWorkspaceKey())
+                    .iv(secretDto.getSecretKeyIV())
+                    .tag(secretDto.getSecretKeyTag())
+                    .cipherText(secretDto.getSecretKeyCiphertext())
+                    .build());
+        }
         String secretValue = CryptUtil.decrypt128BitHexKey(DecryptInput.builder()
                 .key(config.getWorkspaceKey())
-                .iv(secretDto.getSecretValueCiphertext())
+                .iv(secretDto.getSecretValueIV())
                 .tag(secretDto.getSecretValueTag())
                 .cipherText(secretDto.getSecretValueCiphertext())
                 .build());

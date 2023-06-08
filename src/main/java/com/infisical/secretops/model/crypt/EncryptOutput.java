@@ -6,4 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class EncryptOutput {
+    String iv;
+    String tag;
+    String cipherText;
 }

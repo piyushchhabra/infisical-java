@@ -57,6 +57,20 @@ public class APIClient {
         return responseMapper.apply(response);
     }
 
+    public APIResponse doDeleteRequest(String path, Map<String, String> queryParams) throws IOException {
+        String url = prepareUrl(path, queryParams);
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("User-Agent", "InfisicalJavaSDK")
+                .addHeader("Authorization", "Bearer " + SERVICE_TOKEN)
+                .delete()
+                .build();
+        Call call = httpClient.newCall(request);
+        Response response = call.execute();
+        return responseMapper.apply(response);
+    }
+
     private String prepareUrl(String path, Map<String, String> queryParams) {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL + path).newBuilder();
         if (queryParams != null && queryParams.size() > 0) {

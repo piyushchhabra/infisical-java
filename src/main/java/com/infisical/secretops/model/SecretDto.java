@@ -20,4 +20,6 @@ public class SecretDto {
     private String secretCommentTag;
     private String createdAt;
     private String updatedAt;
+
+    private String decryptedSecretName;
 }
