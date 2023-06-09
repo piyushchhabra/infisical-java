@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class DeleteOptions {
-    String type;
+    OptionType type;
 
     public static DeleteOptions defaultOptions() {
-        return new DeleteOptions("shared");
+        return new DeleteOptions(OptionType.SHARED);
     }
 }

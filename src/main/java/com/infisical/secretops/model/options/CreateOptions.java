@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class CreateOptions {
-    String type;
+    OptionType type;
 
     public static CreateOptions defaultOptions() {
-        return new CreateOptions("shared");
+        return new CreateOptions(OptionType.SHARED);
     }
 }

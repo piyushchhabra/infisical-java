@@ -11,6 +11,7 @@ import com.infisical.secretops.model.options.DeleteOptions;
 import com.infisical.secretops.model.options.GetOptions;
 import com.infisical.secretops.model.options.UpdateOptions;
 import com.infisical.secretops.service.SecretService;
+import com.infisical.secretops.util.CryptUtil;
 import com.infisical.secretops.util.InfisicalConstants;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,8 +75,7 @@ public class InfisicalClient {
     }
 
     public Secret updateSecret(String secretName, String secretValue, UpdateOptions options) {
-        //TODO
-        return null;
+        return secretService.updateSecret(secretName, secretValue, options);
     }
 
     public Secret deleteSecret(String secretName) {
@@ -87,8 +87,7 @@ public class InfisicalClient {
     }
 
     public String createSymmetricKey() {
-        //TODO
-        return null;
+        return CryptUtil.createSymmetricKey();
     }
 
     public EncryptOutput encryptSymmetric(String plainText, String key) {

@@ -6,9 +6,9 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class UpdateOptions {
-    String type;
+    OptionType type;
 
     public static UpdateOptions defaultOptions() {
-        return new UpdateOptions("shared");
+        return new UpdateOptions(OptionType.SHARED);
     }
 }

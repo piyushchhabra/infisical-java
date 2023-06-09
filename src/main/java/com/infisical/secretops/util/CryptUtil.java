@@ -71,6 +71,13 @@ public class CryptUtil {
         }
     }
 
+    public String createSymmetricKey() {
+        SecureRandom random = new SecureRandom();
+        byte[] keyBytes = new byte[32];
+        random.nextBytes(keyBytes);
+        return Base64.getEncoder().encodeToString(keyBytes);
+    }
+
     private static byte[] generateIV() {
         SecureRandom random = new SecureRandom();
         byte[] iv = new byte[16];

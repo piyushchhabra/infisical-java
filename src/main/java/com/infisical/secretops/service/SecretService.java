@@ -16,6 +16,7 @@ import com.infisical.secretops.model.crypt.EncryptOutput;
 import com.infisical.secretops.model.options.CreateOptions;
 import com.infisical.secretops.model.options.DeleteOptions;
 import com.infisical.secretops.model.options.GetOptions;
+import com.infisical.secretops.model.options.UpdateOptions;
 import com.infisical.secretops.util.CommonUtil;
 import com.infisical.secretops.util.CryptUtil;
 import com.infisical.secretops.util.ObjectMapperUtil;
@@ -73,7 +74,7 @@ public class SecretService {
     }
 
     public Secret getSecret(String secretName, GetOptions options) {
-        String cacheKey = options.getType() + "-" + secretName;
+        String cacheKey = options.getType().type + "-" + secretName;
         Secret cachedSecret = cachedSecrets.get(cacheKey);
         if (cachedSecret != null) {
             long currentTime = System.currentTimeMillis();
@@ -88,7 +89,7 @@ public class SecretService {
         Map<String, String> params = new HashMap<>();
         params.put("workspaceId", workspaceConfig.getWorkspaceId());
         params.put("environment", workspaceConfig.getEnvironment());
-        params.put("type", options.getType());
+        params.put("type", options.getType().type);
 
         try {
             APIResponse response = apiClient.doGetRequest(path, params);
@@ -128,7 +129,7 @@ public class SecretService {
             Map<String, Object> body = new HashMap<>();
             body.put("workspaceId", workspaceConfig.getWorkspaceId());
             body.put("environment", workspaceConfig.getEnvironment());
-            body.put("type", options.getType());
+            body.put("type", options.getType().type);
             body.put("secretKeyCiphertext", encryptSecretNameOutput.getCipherText());
             body.put("secretKeyIV", encryptSecretNameOutput.getIv());
             body.put("secretKeyTag", encryptSecretNameOutput.getTag());
@@ -141,7 +142,7 @@ public class SecretService {
                 SecretDtoResponse dtoResponse = ObjectMapperUtil.getMapper().readValue(response.getResponseBody(), SecretDtoResponse.class);
                 dtoResponse.getSecret().setDecryptedSecretName(secretName);
                 Secret secret = secretDtoToSecretMapper.apply(dtoResponse.getSecret(), workspaceConfig);
-                String cacheKey = options.getType() + "-" + secretName;
+                String cacheKey = options.getType().type + "-" + secretName;
                 cachedSecrets.put(cacheKey, secret);
                 return secret;
             }
@@ -151,12 +152,43 @@ public class SecretService {
         }
     }
 
+    public Secret updateSecret(String secretName, String secretValue, UpdateOptions options) {
+        String path = "/api/v3/secrets/" + secretName;
+        EncryptInput encryptSecretValueInput = EncryptInput.builder()
+                .plainText(secretValue)
+                .key(workspaceConfig.getWorkspaceKey())
+                .build();
+        try {
+            EncryptOutput encryptSecretValueOutput = CryptUtil.encrypt128BitHexKey(encryptSecretValueInput);
+            Map<String, Object> body = new HashMap<>();
+            body.put("workspaceId", workspaceConfig.getWorkspaceId());
+            body.put("environment", workspaceConfig.getEnvironment());
+            body.put("type", options.getType().type);
+            body.put("secretValueCiphertext", encryptSecretValueOutput.getCipherText());
+            body.put("secretValueIV", encryptSecretValueOutput.getIv());
+            body.put("secretValueTag", encryptSecretValueOutput.getTag());
+
+            APIResponse response = apiClient.doPatchRequest(path, null, body);
+            if (response.isSuccess()) {
+                SecretDtoResponse dtoResponse = ObjectMapperUtil.getMapper().readValue(response.getResponseBody(), SecretDtoResponse.class);
+                dtoResponse.getSecret().setDecryptedSecretName(secretName);
+                Secret secret = secretDtoToSecretMapper.apply(dtoResponse.getSecret(), workspaceConfig);
+                String cacheKey = options.getType().type + "-" + secretName;
+                cachedSecrets.put(cacheKey, secret);
+                return secret;
+            }
+            return CommonUtil.getFallbackSecret(secretName);
+        } catch (Exception e) {
+            throw new InfisicalException("Error while updating secret=" + secretName, e);
+        }
+    }
+
     public Secret deleteSecret(String secretName, DeleteOptions options) {
         String path = "/api/v3/secrets/" + secretName;
         Map<String, Object> body = new HashMap<>();
         body.put("workspaceId", workspaceConfig.getWorkspaceId());
         body.put("environment", workspaceConfig.getEnvironment());
-        body.put("type", options.getType());
+        body.put("type", options.getType().type);
         try {
             APIResponse response = apiClient.doDeleteRequest(path, null, body);
             if (response.isSuccess()) {
@@ -164,7 +196,7 @@ public class SecretService {
                 dtoResponse.getSecret().setDecryptedSecretName(secretName);
                 Secret secret =  secretDtoToSecretMapper.apply(dtoResponse.getSecret(), workspaceConfig);
                 cachedSecrets.remove(secretName);
-                cachedSecrets.remove(options.getType() + "-" + secretName);
+                cachedSecrets.remove(options.getType().type + "-" + secretName);
                 return secret;
             }
             throw runtimeException(response, secretName, "delete");
