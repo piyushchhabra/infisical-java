@@ -40,15 +40,15 @@ public class InfisicalClient {
         if (ttlSeconds < 60L) {
             throw new InitException("Cache TTL can not be less than 60 seconds");
         }
-        this.init(token, ttlSeconds, siteUrl);
+        this.init(token, ttlSeconds, siteUrl, options.isDebugMode());
     }
 
-    private void init(final String token, final long ttlSeconds, final String siteUrl) {
+    private void init(final String token, final long ttlSeconds, final String siteUrl, final boolean debugMode) {
         int lastDotIdx = token.lastIndexOf('.');
         this.serviceToken = token.substring(0, lastDotIdx);
         ;
         String serviceTokenKey = token.substring(lastDotIdx + 1);
-        this.secretService = new SecretService(new APIClient(serviceToken, siteUrl), ttlSeconds, serviceTokenKey);
+        this.secretService = new SecretService(new APIClient(serviceToken, siteUrl), ttlSeconds, serviceTokenKey, debugMode);
     }
 
     public List<Secret> getAllSecrets() {

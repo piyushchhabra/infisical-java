@@ -13,4 +13,5 @@ public class InfisicalClientOptions {
     private String token;
     private Long cacheTtlInSeconds;
     private String siteURL;
+    private boolean debugMode;
 }

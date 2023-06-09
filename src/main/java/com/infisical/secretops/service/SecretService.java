@@ -20,6 +20,7 @@ import com.infisical.secretops.model.options.UpdateOptions;
 import com.infisical.secretops.util.CommonUtil;
 import com.infisical.secretops.util.CryptUtil;
 import com.infisical.secretops.util.ObjectMapperUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-//TODO: Add logs for success and failure errors
-
+@Slf4j
 public class SecretService {
 
     private final APIClient apiClient;
@@ -36,15 +36,16 @@ public class SecretService {
     private final String serviceTokenKey;
     private final WorkspaceConfig workspaceConfig;
     private final SecretDtoToSecretMapper secretDtoToSecretMapper;
-
+    private final boolean debugMode;
     private Map<String, Secret> cachedSecrets;
 
-    public SecretService(APIClient client, Long ttlSeconds, String serviceTokenKey) {
+    public SecretService(APIClient client, Long ttlSeconds, String serviceTokenKey, boolean debugMode) {
         this.apiClient = client;
         this.ttlSeconds = ttlSeconds;
         this.serviceTokenKey = serviceTokenKey;
         this.secretDtoToSecretMapper = new SecretDtoToSecretMapper();
         this.cachedSecrets = new HashMap<>();
+        this.debugMode = debugMode;
         try {
             this.workspaceConfig = getWorkspaceConfig();
         } catch (Exception e) {
@@ -79,8 +80,10 @@ public class SecretService {
         if (cachedSecret != null) {
             long currentTime = System.currentTimeMillis();
             long lastFetchedAt = cachedSecret.getLastFetchedAt();
-            if ((lastFetchedAt + (ttlSeconds*1000)) > currentTime) {
-                //TODO: add logs
+            if ((lastFetchedAt + (ttlSeconds * 1000)) > currentTime) {
+                if (debugMode) {
+                    log.info("Returning cached secret: " + secretName);
+                }
                 return cachedSecret;
             }
         }
@@ -100,12 +103,17 @@ public class SecretService {
                 cachedSecrets.put(cacheKey, secret);
                 return secret;
             } else if (cachedSecret != null) {
-                //TODO: log that because of error we are returning cached response
+                if (debugMode) {
+                    log.info("Returning cached secret: " + secretName);
+                }
                 return cachedSecret;
             }
             throw runtimeException(response, secretName, "fetch");
         } catch (Exception e) {
             if (cachedSecret != null) {
+                if (debugMode) {
+                    log.info("Returning cached secret: " + secretName);
+                }
                 return cachedSecret;
             }
             throw new InfisicalException("Error while fetching secret=" + secretName, e);
