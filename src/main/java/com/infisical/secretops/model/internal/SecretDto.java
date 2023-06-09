@@ -1,4 +1,4 @@
-package com.infisical.secretops.model;
+package com.infisical.secretops.model.internal;
 
 import lombok.Data;
 
@@ -20,4 +20,6 @@ public class SecretDto {
     private String secretCommentTag;
     private String createdAt;
     private String updatedAt;
+
+    private String decryptedSecretName;
 }

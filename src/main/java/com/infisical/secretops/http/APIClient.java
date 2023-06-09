@@ -45,17 +45,52 @@ public class APIClient {
     public APIResponse doPostRequest(String path, Map<String, String> queryParams, Map<String, Object> body) throws IOException {
         String url = prepareUrl(path, queryParams);
         String payload = ObjectMapperUtil.getMapper().writeValueAsString(body);
+        RequestBody requestBody = RequestBody.create(payload, JSON_MEDIA_TYPE);
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Content-Type", "application/json")
                 .addHeader("User-Agent", "InfisicalJavaSDK")
                 .addHeader("Authorization", "Bearer " + SERVICE_TOKEN)
-                .post(RequestBody.create(JSON_MEDIA_TYPE, payload))
+                .post(requestBody)
                 .build();
         Call call = httpClient.newCall(request);
         Response response = call.execute();
         return responseMapper.apply(response);
     }
+
+    public APIResponse doDeleteRequest(String path, Map<String, String> queryParams, Map<String, Object> body) throws IOException {
+        String url = prepareUrl(path, queryParams);
+        String payload = ObjectMapperUtil.getMapper().writeValueAsString(body);
+        RequestBody requestBody = RequestBody.create(payload, JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("User-Agent", "InfisicalJavaSDK")
+                .addHeader("Authorization", "Bearer " + SERVICE_TOKEN)
+                .delete(requestBody)
+                .build();
+        Call call = httpClient.newCall(request);
+        Response response = call.execute();
+        return responseMapper.apply(response);
+    }
+
+
+    public APIResponse doPatchRequest(String path, Map<String, String> queryParams, Map<String, Object> body) throws IOException {
+        String url = prepareUrl(path, queryParams);
+        String payload = ObjectMapperUtil.getMapper().writeValueAsString(body);
+        RequestBody requestBody = RequestBody.create(payload, JSON_MEDIA_TYPE);
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("User-Agent", "InfisicalJavaSDK")
+                .addHeader("Authorization", "Bearer " + SERVICE_TOKEN)
+                .patch(requestBody)
+                .build();
+        Call call = httpClient.newCall(request);
+        Response response = call.execute();
+        return responseMapper.apply(response);
+    }
+
 
     private String prepareUrl(String path, Map<String, String> queryParams) {
         HttpUrl.Builder urlBuilder = HttpUrl.parse(BASE_URL + path).newBuilder();
