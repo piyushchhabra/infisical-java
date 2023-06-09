@@ -32,6 +32,30 @@ The recommended way to use the Infisical SDK for Java in your project is to cons
     <version>1.0.0</version>
 </dependency>
 ```
+
+## Configuration
+
+Initialize the `InfisicalClient` with your [Infisical Token](https://infisical.com/docs/getting-started/dashboard/token).
+
+```java
+InfisicalClientOptions options = InfisicalClientOptions.builder()
+    .token("YOUR_TOKEN_HERE")
+    .cacheTtlInSeconds(60L)
+    .debugMode(true)
+    .build();
+
+InfisicalClient client = new InfisicalClient(options);
+```
+
+### Options
+
+| Parameter | Type     | Description |
+| --------- | -------- | ----------- |
+| `token`   | `string` | An Infisical Token scoped to a project and environment. |
+| `siteURL` | `string` | Your self-hosted Infisical site URL. Default: `https://app.infisical.com`. |
+| `cacheTtlInSeconds`| `number` | Time-to-live (in seconds) for refreshing cached secrets. Minimum: `60` and Default: `300`.|
+| `debugMode`   | `boolean` | Turns debug mode on or off. Default: `false`.      |
+
 ## Contributing
 
 Bug fixes, docs, and library improvements are always welcome. Please refer to our [Contributing Guide](https://infisical.com/docs/contributing/overview) for detailed information on how you can contribute.

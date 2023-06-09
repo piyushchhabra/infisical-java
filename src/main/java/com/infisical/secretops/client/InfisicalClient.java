@@ -14,11 +14,13 @@ import com.infisical.secretops.model.options.UpdateOptions;
 import com.infisical.secretops.service.SecretService;
 import com.infisical.secretops.util.CryptUtil;
 import com.infisical.secretops.util.InfisicalConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 public class InfisicalClient {
 
     private String serviceToken;
@@ -49,6 +51,7 @@ public class InfisicalClient {
         ;
         String serviceTokenKey = token.substring(lastDotIdx + 1);
         this.secretService = new SecretService(new APIClient(serviceToken, siteUrl), ttlSeconds, serviceTokenKey, debugMode);
+        log.info("Infisical Java Client Initialized Successfully !!!!");
     }
 
     public List<Secret> getAllSecrets() {
