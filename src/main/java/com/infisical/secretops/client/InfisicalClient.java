@@ -4,7 +4,8 @@ import com.infisical.secretops.exception.InitException;
 import com.infisical.secretops.http.APIClient;
 import com.infisical.secretops.model.InfisicalClientOptions;
 import com.infisical.secretops.model.Secret;
-import com.infisical.secretops.model.crypt.DecryptOutput;
+import com.infisical.secretops.model.crypt.DecryptInput;
+import com.infisical.secretops.model.crypt.EncryptInput;
 import com.infisical.secretops.model.crypt.EncryptOutput;
 import com.infisical.secretops.model.options.CreateOptions;
 import com.infisical.secretops.model.options.DeleteOptions;
@@ -44,7 +45,8 @@ public class InfisicalClient {
 
     private void init(final String token, final long ttlSeconds, final String siteUrl) {
         int lastDotIdx = token.lastIndexOf('.');
-        this.serviceToken = token.substring(0, lastDotIdx);;
+        this.serviceToken = token.substring(0, lastDotIdx);
+        ;
         String serviceTokenKey = token.substring(lastDotIdx + 1);
         this.secretService = new SecretService(new APIClient(serviceToken, siteUrl), ttlSeconds, serviceTokenKey);
     }
@@ -91,13 +93,19 @@ public class InfisicalClient {
     }
 
     public EncryptOutput encryptSymmetric(String plainText, String key) {
-        //TODO
-        return null;
+        return CryptUtil.encryptSymmetric(EncryptInput.builder()
+                .key(key)
+                .plainText(plainText)
+                .build());
     }
 
-    public DecryptOutput decryptSymmetric(String cipherText, String key, String iv, String tag) {
-        //TODO
-        return null;
+    public String decryptSymmetric(String cipherText, String key, String iv, String tag) {
+        return CryptUtil.decryptSymmetric(DecryptInput.builder()
+                .cipherText(cipherText)
+                .key(key)
+                .iv(iv)
+                .tag(tag)
+                .build());
     }
 
 }

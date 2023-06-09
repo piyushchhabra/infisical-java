@@ -230,7 +230,7 @@ public class SecretService {
         if (Objects.nonNull(response) && response.getResponseCode() == 404) {
             return new SecretNotFoundException(secretName);
         }
-        String err = "Error while operation" + operation;
+        String err = "Error while operation=" + operation;
         if (secretName != null) {
             err += " | secretName=" + secretName;
         }

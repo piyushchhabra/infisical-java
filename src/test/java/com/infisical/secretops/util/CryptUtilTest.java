@@ -43,4 +43,22 @@ public class CryptUtilTest {
         String decryptedText = CryptUtil.decrypt128BitHexKey(decryptInput);
         Assertions.assertEquals("The quick brown fox jumps over the lazy dog", decryptedText);
     }
+
+    @Test
+    @SneakyThrows
+    public void testSymmetricKeyEncryptionDecryption() {
+        String plainText = "I am Batman";
+        String key = "S7j0r/pn+ZSdKsZgvwwnernY3/SWVO820educ5XgG94=";
+        EncryptOutput encryptOutput = CryptUtil.encryptSymmetric(EncryptInput.builder().key(key).plainText(plainText).build());
+
+        DecryptInput decryptInput = DecryptInput.builder()
+                .key(key)
+                .iv(encryptOutput.getIv())
+                .tag(encryptOutput.getTag())
+                .cipherText(encryptOutput.getCipherText())
+                .build();
+        String decryptedText = CryptUtil.decryptSymmetric(decryptInput);
+        Assertions.assertNotNull(encryptOutput);
+        Assertions.assertEquals(plainText, decryptedText);
+    }
 }
