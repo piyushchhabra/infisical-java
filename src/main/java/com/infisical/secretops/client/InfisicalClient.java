@@ -66,8 +66,7 @@ public class InfisicalClient {
     }
 
     public Secret createSecret(String secretName, String secretValue, CreateOptions options) {
-        //TODO
-        return null;
+        return secretService.createSecret(secretName, secretValue, options);
     }
 
     public Secret updateSecret(String secretName, String secretValue) {

@@ -1,4 +1,4 @@
-package com.infisical.secretops.model;
+package com.infisical.secretops.model.internal;
 
 import lombok.Data;
 

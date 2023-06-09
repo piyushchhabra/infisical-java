@@ -2,33 +2,39 @@ package com.infisical.secretops.service;
 
 import com.infisical.secretops.exception.InfisicalException;
 import com.infisical.secretops.exception.InitException;
+import com.infisical.secretops.exception.SecretNotFoundException;
 import com.infisical.secretops.http.APIClient;
 import com.infisical.secretops.http.APIResponse;
 import com.infisical.secretops.mapper.SecretDtoToSecretMapper;
 import com.infisical.secretops.model.Secret;
-import com.infisical.secretops.model.SecretDtoListResponse;
-import com.infisical.secretops.model.SecretDtoResponse;
+import com.infisical.secretops.model.internal.SecretDtoListResponse;
+import com.infisical.secretops.model.internal.SecretDtoResponse;
 import com.infisical.secretops.model.apiresponse.WorkspaceConfig;
 import com.infisical.secretops.model.crypt.DecryptInput;
+import com.infisical.secretops.model.crypt.EncryptInput;
+import com.infisical.secretops.model.crypt.EncryptOutput;
+import com.infisical.secretops.model.options.CreateOptions;
 import com.infisical.secretops.model.options.DeleteOptions;
 import com.infisical.secretops.model.options.GetOptions;
+import com.infisical.secretops.util.CommonUtil;
 import com.infisical.secretops.util.CryptUtil;
 import com.infisical.secretops.util.ObjectMapperUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 //TODO: Add logs for success and failure errors
 
 public class SecretService {
 
-    private APIClient apiClient;
-    private long ttlSeconds;
-    private String serviceTokenKey;
-    private WorkspaceConfig workspaceConfig;
-    private SecretDtoToSecretMapper secretDtoToSecretMapper;
+    private final APIClient apiClient;
+    private final long ttlSeconds;
+    private final String serviceTokenKey;
+    private final WorkspaceConfig workspaceConfig;
+    private final SecretDtoToSecretMapper secretDtoToSecretMapper;
 
     private Map<String, Secret> cachedSecrets;
 
@@ -96,7 +102,7 @@ public class SecretService {
                 //TODO: log that because of error we are returning cached response
                 return cachedSecret;
             }
-            throw new InfisicalException("Error while fetching secret=" + secretName + " | API response=" + response);
+            throw runtimeException(response, secretName, "fetch");
         } catch (Exception e) {
             if (cachedSecret != null) {
                 return cachedSecret;
@@ -105,14 +111,54 @@ public class SecretService {
         }
     }
 
+    public Secret createSecret(String secretName, String secretValue, CreateOptions options) {
+        EncryptInput encryptSecretNameInput = EncryptInput.builder()
+                .plainText(secretName)
+                .key(workspaceConfig.getWorkspaceKey())
+                .build();
+        EncryptInput encryptSecretValueInput = EncryptInput.builder()
+                .plainText(secretValue)
+                .key(workspaceConfig.getWorkspaceKey())
+                .build();
+        try {
+            EncryptOutput encryptSecretNameOutput = CryptUtil.encrypt128BitHexKey(encryptSecretNameInput);
+            EncryptOutput encryptSecretValueOutput = CryptUtil.encrypt128BitHexKey(encryptSecretValueInput);
+            String path = "/api/v3/secrets/" + secretName;
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("workspaceId", workspaceConfig.getWorkspaceId());
+            body.put("environment", workspaceConfig.getEnvironment());
+            body.put("type", options.getType());
+            body.put("secretKeyCiphertext", encryptSecretNameOutput.getCipherText());
+            body.put("secretKeyIV", encryptSecretNameOutput.getIv());
+            body.put("secretKeyTag", encryptSecretNameOutput.getTag());
+            body.put("secretValueCiphertext", encryptSecretValueOutput.getCipherText());
+            body.put("secretValueIV", encryptSecretValueOutput.getIv());
+            body.put("secretValueTag", encryptSecretValueOutput.getTag());
+
+            APIResponse response = apiClient.doPostRequest(path, null, body);
+            if (response.isSuccess()) {
+                SecretDtoResponse dtoResponse = ObjectMapperUtil.getMapper().readValue(response.getResponseBody(), SecretDtoResponse.class);
+                dtoResponse.getSecret().setDecryptedSecretName(secretName);
+                Secret secret = secretDtoToSecretMapper.apply(dtoResponse.getSecret(), workspaceConfig);
+                String cacheKey = options.getType() + "-" + secretName;
+                cachedSecrets.put(cacheKey, secret);
+                return secret;
+            }
+            return CommonUtil.getFallbackSecret(secretName);
+        } catch (Exception e) {
+            throw new InfisicalException("Error while creating secret=" + secretName, e);
+        }
+    }
+
     public Secret deleteSecret(String secretName, DeleteOptions options) {
         String path = "/api/v3/secrets/" + secretName;
-        Map<String, String> params = new HashMap<>();
-        params.put("workspaceId", workspaceConfig.getWorkspaceId());
-        params.put("environment", workspaceConfig.getEnvironment());
-        params.put("type", options.getType());
+        Map<String, Object> body = new HashMap<>();
+        body.put("workspaceId", workspaceConfig.getWorkspaceId());
+        body.put("environment", workspaceConfig.getEnvironment());
+        body.put("type", options.getType());
         try {
-            APIResponse response = apiClient.doDeleteRequest(path, params);
+            APIResponse response = apiClient.doDeleteRequest(path, null, body);
             if (response.isSuccess()) {
                 SecretDtoResponse dtoResponse = ObjectMapperUtil.getMapper().readValue(response.getResponseBody(), SecretDtoResponse.class);
                 dtoResponse.getSecret().setDecryptedSecretName(secretName);
@@ -121,7 +167,7 @@ public class SecretService {
                 cachedSecrets.remove(options.getType() + "-" + secretName);
                 return secret;
             }
-            throw new InfisicalException("Error while deleting secret=" + secretName + " API Response=" + response);
+            throw runtimeException(response, secretName, "delete");
         } catch (Exception e) {
             throw new InfisicalException("Error while deleting secret=" + secretName, e);
         }
@@ -146,5 +192,20 @@ public class SecretService {
                     .build();
         }
         throw new Exception("Failed while fetching workspace config. ApiResponse: " + response);
+    }
+
+    private RuntimeException runtimeException(APIResponse response, String secretName, String operation) {
+        if (Objects.nonNull(response) && response.getResponseCode() == 404) {
+            return new SecretNotFoundException(secretName);
+        }
+        String err = "Error while operation" + operation;
+        if (secretName != null) {
+            err += " | secretName=" + secretName;
+        }
+        if (operation != null) {
+            err += " | operation=" + operation;
+        }
+        err += " | APIResponse=" + response;
+        return new InfisicalException(err);
     }
 }

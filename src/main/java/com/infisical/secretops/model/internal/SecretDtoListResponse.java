@@ -1,5 +1,6 @@
-package com.infisical.secretops.model;
+package com.infisical.secretops.model.internal;
 
+import com.infisical.secretops.model.internal.SecretDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

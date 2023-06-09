@@ -1,7 +1,7 @@
 package com.infisical.secretops.mapper;
 
 import com.infisical.secretops.model.Secret;
-import com.infisical.secretops.model.SecretDto;
+import com.infisical.secretops.model.internal.SecretDto;
 import com.infisical.secretops.model.apiresponse.WorkspaceConfig;
 import com.infisical.secretops.model.crypt.DecryptInput;
 import com.infisical.secretops.util.CryptUtil;

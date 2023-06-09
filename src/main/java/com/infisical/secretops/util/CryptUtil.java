@@ -66,7 +66,7 @@ public class CryptUtil {
 
             return new String(decryptedBytes, "UTF-8");
         } catch (Exception e) {
-            System.out.println("Error in decryption for input: " + input + " | Error=" + e);
+            // TODO: add logs
             throw e;
         }
     }
