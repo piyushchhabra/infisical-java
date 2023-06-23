@@ -23,7 +23,6 @@ import java.util.Objects;
 @Slf4j
 public class InfisicalClient {
 
-    private String serviceToken;
     private SecretService secretService;
 
     public InfisicalClient(InfisicalClientOptions options) {
@@ -47,8 +46,7 @@ public class InfisicalClient {
 
     private void init(final String token, final long ttlSeconds, final String siteUrl, final boolean debugMode) {
         int lastDotIdx = token.lastIndexOf('.');
-        this.serviceToken = token.substring(0, lastDotIdx);
-        ;
+        String serviceToken = token.substring(0, lastDotIdx);
         String serviceTokenKey = token.substring(lastDotIdx + 1);
         this.secretService = new SecretService(new APIClient(serviceToken, siteUrl), ttlSeconds, serviceTokenKey, debugMode);
         log.info("Infisical Java Client Initialized Successfully !!!!");

@@ -2,7 +2,13 @@ package com.infisical.secretops.http;
 
 import com.infisical.secretops.mapper.HttpResponseMapper;
 import com.infisical.secretops.util.ObjectMapperUtil;
-import okhttp3.*;
+import okhttp3.Call;
+import okhttp3.HttpUrl;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import java.io.IOException;
 import java.util.Map;
@@ -10,10 +16,10 @@ import java.util.concurrent.TimeUnit;
 
 public class APIClient {
 
-    private OkHttpClient httpClient;
-    private HttpResponseMapper responseMapper;
-    private String BASE_URL;
-    private String SERVICE_TOKEN;
+    private final OkHttpClient httpClient;
+    private final HttpResponseMapper responseMapper;
+    private final String BASE_URL;
+    private final String SERVICE_TOKEN;
 
     private static final MediaType JSON_MEDIA_TYPE
             = MediaType.parse("application/json; charset=utf-8");
