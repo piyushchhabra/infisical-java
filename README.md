@@ -24,7 +24,22 @@
 
 ## Installation
 
-The recommended way to use the Infisical SDK for Java in your project is to consume it from Maven. Import as follows:
+The recommended way to use the Infisical SDK for Java in your project is to consume it from Maven.
+First, Add sonatype release repositories in your `pom.xml` file
+```xml
+<repositories>
+    <repository>
+        <id>sonatype</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/releases/</url>
+    </repository>
+    <repository>
+        <id>sonatype</id>
+        <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+    </repository>
+</repositories>
+```
+
+Then import as follows:
 ```xml
 <dependency>
     <groupId>io.github.piyushchhabra</groupId>

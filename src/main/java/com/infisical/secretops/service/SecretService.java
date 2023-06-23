@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -44,7 +45,7 @@ public class SecretService {
         this.ttlSeconds = ttlSeconds;
         this.serviceTokenKey = serviceTokenKey;
         this.secretDtoToSecretMapper = new SecretDtoToSecretMapper();
-        this.cachedSecrets = new HashMap<>();
+        this.cachedSecrets = new ConcurrentHashMap<>();
         this.debugMode = debugMode;
         try {
             this.workspaceConfig = getWorkspaceConfig();
